@@ -30,9 +30,18 @@ const generateSystemPrompt = ({ character_desc, session_example }: Config) => {
   return prompt;
 };
 
-function random(min, max) {
+function random(min: number, max: number) {
   const range = max - min + 1;
   return Math.floor(Math.random() * range) + min;
+}
+
+function trimStrangeChars(str: string) {
+  const strangeChars = ['，', '。', '：', ':', '\\', '/', '.'];
+  let text = [...str];
+  while (strangeChars.includes(text[0])) {
+    text.shift();
+  }
+  return text.join('');
 }
 
 let historyMessages: string[] = [];
@@ -99,7 +108,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
           return response.slice(prefix.length).trim();
         }
       }
-      return response;
+      return trimStrangeChars(response);
     }
 
     const split = [':', '：'];
@@ -111,7 +120,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       }
     }
 
-    return response;
+    return trimStrangeChars(response);
   };
 
   const send = (text: string) => {
