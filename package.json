@@ -1,0 +1,24 @@
+{
+  "name": "koishi-plugin-gpt-character",
+  "description": "让机器人可以通过 ChatGPT 扮演某个角色",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "license": "MIT",
+  "scripts": {},
+  "keywords": [
+    "chatbot",
+    "koishi",
+    "plugin"
+  ],
+  "peerDependencies": {
+    "koishi": "^4.13.0"
+  },
+  "dependencies": {
+    "openai": "^3.2.1"
+  }
+}
