@@ -54,9 +54,15 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
   if (
     Date.now() - lastCompletionTime <=
-      config.completion_throttle + random(config.min_random_throttle, config.max_random_throttle) ||
-    isCompleting
+    config.completion_throttle + random(config.min_random_throttle, config.max_random_throttle)
   ) {
+    config.enable_debug && logger.info('Skip message because throttle.', session.content);
+    return;
+  }
+
+  if (isCompleting) {
+    config.enable_debug &&
+      logger.info('Skip message because the completion is in progress.', session.content);
     return;
   }
 
@@ -145,6 +151,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     },
     {
       responseType: 'stream',
+      timeout: 5000,
       ...(proxyUrl
         ? {
             proxy: {
@@ -159,45 +166,55 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
   let responseText = '';
 
-  (response.data as any as Stream).on('data', (data: string) => {
-    const streamData = data.toString();
-
-    const lines = streamData
-      .toString()
-      .split('\n')
-      .filter((line) => line.trim() !== '');
-    lines.forEach((line) => {
-      const message = line.replace(/^data: /, '');
-      if (message === '[DONE]') {
-        // output is over
-        if (!responseText) {
+  try {
+    const stream = response.data as any as Stream;
+    stream.on('data', (data: string) => {
+      const streamData = data.toString();
+      const lines = streamData
+        .toString()
+        .split('\n')
+        .filter((line) => line.trim() !== '');
+      lines.forEach((line) => {
+        const message = line.replace(/^data: /, '');
+        if (message === '[DONE]') {
+          // output is over
+          if (!responseText) {
+            return;
+          }
+          send(postProcessResponse(responseText));
+          responseText = '';
           return;
         }
-        send(postProcessResponse(responseText));
-        responseText = '';
-        return;
-      }
-      let parsed: any;
-      try {
-        parsed = JSON.parse(message);
-      } catch (error) {
-        logger.error('Cannot parse OpenAI response.', error);
-      }
-      const deltaContent = parsed?.choices?.[0]?.delta?.content;
-      if (!deltaContent) {
-        return;
-      }
-      responseText += deltaContent;
-      if (['。'].includes(deltaContent)) {
-        send(postProcessResponse(responseText));
-        responseText = '';
-      }
+        let parsed: any;
+        try {
+          parsed = JSON.parse(message);
+        } catch (error) {
+          logger.error('Cannot parse OpenAI response.', error);
+        }
+        const deltaContent = parsed?.choices?.[0]?.delta?.content;
+        if (!deltaContent) {
+          return;
+        }
+        responseText += deltaContent;
+        if (['。'].includes(deltaContent)) {
+          send(postProcessResponse(responseText));
+          responseText = '';
+        }
+      });
     });
-  });
+    stream.on('error', (error) => {
+      isCompleting = false;
+      logger.error('Error ocurred when streaming:', error);
+    });
+    stream.on('end', () => {
+      isCompleting = false;
+    });
+  } catch (error) {
+    logger.error('Error ocurred when completing:', error);
+    isCompleting = false;
+  }
 
   if (historyMessages.length > config.max_history_count) {
     historyMessages = historyMessages.slice(-config.max_history_count);
   }
-
-  isCompleting = false;
 };
