@@ -63,6 +63,10 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   const isAtMe = session.content.startsWith(`<at id="${session.selfId}"/>`);
 
   if (isAt) {
+    if (!isAtMe) {
+      // do not respond with message with is not at me
+      return;
+    }
     if (isAtMe && config.character_name) {
       session.content.replace(/(你是|的|去|好|想)/g, `${config.character_name}$1`);
     }
