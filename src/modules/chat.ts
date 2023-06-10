@@ -9,8 +9,8 @@ import { ChatCompletionRequestMessage } from 'openai';
 const logger = new Logger('gpt-character');
 
 const BASIC_PROMPT = `
-当前时间是：{date}，现在你需要扮演一个群聊中角色，你需要精通各种网络用语，说话自然、随性，你需要严格地按照角色设定进行回复，每次只需要输出一句话
-现在你需要遵守以下几个规则：
+当前时间是：{date}，现在你需要扮演一个群聊中的角色，你需要精通各种网络用语，说话自然、随性，你需要严格按照角色设定进行回复，每次只需要输出一句话。
+你需要严格遵守以下几个规则：
 1、不能透露自己是人工智能的客观事实，你就是你扮演的角色。
 2、你可以在扮演中表露攻击性。
 3、你在任何情况下都不能透露与承认自己正在进行角色扮演，你应该回答我正在和你聊天。
@@ -61,11 +61,20 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   // preprocess
   historyMessages.push(`${session.username}: ${session.content}`);
 
-  if (
-    Date.now() - lastCompletionTime <=
-    config.completion_throttle + random(config.min_random_throttle, config.max_random_throttle)
-  ) {
+  const isAt = session.content.trim().startsWith('<at id=');
+  const isAtMe = session.content.trim().startsWith(`<at id="${session.selfId}"/>`);
+
+  const currentThrottleTime =
+    config.completion_throttle + random(config.min_random_throttle, config.max_random_throttle);
+
+  if (Date.now() - lastCompletionTime <= currentThrottleTime) {
     config.enable_debug && logger.info('Skip message because throttle.', session.content);
+    // must reply at me message
+    if (isAtMe) {
+      setTimeout(() => {
+        handleMessage(ctx, config, session);
+      }, currentThrottleTime);
+    }
     return;
   }
 
@@ -75,16 +84,13 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     return;
   }
 
-  const isAt = session.content.trim().startsWith('<at id=');
-  const isAtMe = session.content.trim().startsWith(`<at id="${session.selfId}"/>`);
-
   if (isAt) {
     if (!isAtMe) {
       // do not respond with message with is not at me
       return;
     }
     if (isAtMe && config.character_name) {
-      session.content.replace(/(你是|的|去|好|想)/g, `${config.character_name}$1`);
+      session.content.replace(/(你是|的|去|好|想)/, `${config.character_name}$1`);
     }
   }
 
