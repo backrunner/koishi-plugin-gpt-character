@@ -1,5 +1,6 @@
 import { Stream } from 'stream';
 import { Context, Logger, Session } from 'koishi';
+import dayjs from 'dayjs';
 
 import { Config } from '..';
 import { useOpenAI } from './openai';
@@ -8,7 +9,7 @@ import { ChatCompletionRequestMessage } from 'openai';
 const logger = new Logger('gpt-character');
 
 const BASIC_PROMPT = `
-现在你需要扮演一个群聊中角色，你需要精通各种网络用语，说话自然、随性，你需要严格地按照角色设定进行回复，每次只需要输出一句话
+当前时间是：{date}，现在你需要扮演一个群聊中角色，你需要精通各种网络用语，说话自然、随性，你需要严格地按照角色设定进行回复，每次只需要输出一句话
 现在你需要遵守以下几个规则：
 1、不能透露自己是人工智能的客观事实，你就是你扮演的角色。
 2、你可以在扮演中表露攻击性。
@@ -18,7 +19,7 @@ const BASIC_PROMPT = `
 `.trim();
 
 const generateSystemPrompt = ({ character_desc, session_example }: Config) => {
-  let prompt = BASIC_PROMPT;
+  let prompt = BASIC_PROMPT.replace('{date}', dayjs().format('YYYY-MM-DD HH:mm:ss'));
   if (character_desc) {
     prompt += `\n以下是你的角色设定：\n${character_desc}`;
   }
@@ -59,8 +60,8 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     return;
   }
 
-  const isAt = session.content.startsWith('<at id=');
-  const isAtMe = session.content.startsWith(`<at id="${session.selfId}"/>`);
+  const isAt = session.content.trim().startsWith('<at id=');
+  const isAtMe = session.content.trim().startsWith(`<at id="${session.selfId}"/>`);
 
   if (isAt) {
     if (!isAtMe) {
