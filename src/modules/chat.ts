@@ -59,10 +59,13 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     return;
   }
 
+  const isAt = session.content.startsWith('<at id=');
   const isAtMe = session.content.startsWith(`<at id="${session.selfId}"/>`);
 
-  if (isAtMe && config.character_name) {
-    session.content.replace(/(你是|的|去|好|想)/g, `${config.character_name}$1`);
+  if (isAt) {
+    if (isAtMe && config.character_name) {
+      session.content.replace(/(你是|的|去|好|想)/g, `${config.character_name}$1`);
+    }
   }
 
   if (config.random_drop && !isAtMe) {
