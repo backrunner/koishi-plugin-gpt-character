@@ -110,6 +110,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
   const send = (text: string) => {
     historyMessages.push(`贵族: ${text}`);
+    config.enable_debug && logger.info('Reply with:', text);
     session.send(text);
   };
 
@@ -131,6 +132,9 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
   lastCompletionTime = Date.now();
   isCompleting = true;
+
+  config.enable_debug && logger.info('Starting completion:', JSON.stringify(currentSession));
+  config.enable_debug && logger.info('Original message:', session.content);
 
   const response = await openai.createChatCompletion(
     {
