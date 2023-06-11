@@ -46,6 +46,7 @@ function trimStrangeChars(str: string) {
 
 let historyMessages: string[] = [];
 let lastCompletionTime: number;
+let lastMessageFrom: string;
 let isCompleting = false;
 
 export const handleMessage = async (ctx: Context, config: Config, session: Session) => {
@@ -60,6 +61,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
   // preprocess
   historyMessages.push(`${session.username}: ${session.content}`);
+  lastMessageFrom = session.userId;
 
   const isAt = session.content.trim().startsWith('<at id=');
   const isAtMe = session.content.trim().startsWith(`<at id="${session.selfId}"/>`);
@@ -89,7 +91,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       // do not respond with message with is not at me
       return;
     }
-    if (isAtMe && config.character_name) {
+    if (config.character_name) {
       session.content.replace(/(你是|的|去|好|想)/, `${config.character_name}$1`);
     }
   }
@@ -132,6 +134,10 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   const send = (text: string) => {
     historyMessages.push(`贵族: ${text}`);
     config.enable_debug && logger.info('Reply with:', text);
+    if (isAtMe && session.userId !== lastMessageFrom) {
+      session.send(`<at id="${session.userId}"/> ${text}`);
+      return;
+    }
     session.send(text);
   };
 
@@ -161,8 +167,8 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     {
       model: 'gpt-3.5-turbo',
       messages: currentSession,
-      temperature: 0.62,
-      presence_penalty: 0.4,
+      temperature: 0.6,
+      presence_penalty: 0.42,
       frequency_penalty: 0.3,
       stream: true,
     },
