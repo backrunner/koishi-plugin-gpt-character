@@ -15,6 +15,10 @@ export interface Config {
   random_drop?: number;
   max_history_count?: number;
   enable_debug?: boolean;
+  temperature?: number;
+  presence_penalty?: number;
+  frequency_penalty?: number;
+  completion_timeout?: number;
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -34,6 +38,10 @@ export const Config: Schema<Config> = Schema.object({
     .description('最大随机额外间隔'),
   random_drop: Schema.number().default(0.9).description('随机丢弃概率（0-1）'),
   max_history_count: Schema.number().default(10).description('最大对话历史记录条数'),
+  temperature: Schema.number().default(0.6),
+  presence_penalty: Schema.number().default(0.4),
+  frequency_penalty: Schema.number().default(0.25),
+  completion_timeout: Schema.number().default(5000),
   enable_debug: Schema.boolean().default(false).description('启用调试模式（更多日志）'),
 });
 

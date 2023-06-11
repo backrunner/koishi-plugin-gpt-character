@@ -167,14 +167,14 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     {
       model: 'gpt-3.5-turbo',
       messages: currentSession,
-      temperature: 0.6,
-      presence_penalty: 0.42,
-      frequency_penalty: 0.3,
+      temperature: config.temperature,
+      presence_penalty: config.presence_penalty,
+      frequency_penalty: config.frequency_penalty,
       stream: true,
     },
     {
       responseType: 'stream',
-      timeout: 5000,
+      timeout: config.completion_timeout,
       ...(proxyUrl
         ? {
             proxy: {
