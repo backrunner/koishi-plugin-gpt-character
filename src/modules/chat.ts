@@ -161,9 +161,9 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     {
       model: 'gpt-3.5-turbo',
       messages: currentSession,
-      temperature: 0.65,
-      presence_penalty: 0.5,
-      frequency_penalty: 0.2,
+      temperature: 0.62,
+      presence_penalty: 0.4,
+      frequency_penalty: 0.3,
       stream: true,
     },
     {
