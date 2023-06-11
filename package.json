@@ -1,19 +1,28 @@
 {
   "name": "koishi-plugin-gpt-character",
   "description": "让机器人可以通过 ChatGPT 扮演某个角色",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
     "lib",
     "dist"
   ],
+  "contributors": [
+    "BackRunner <dev@backrunner.top>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/backrunner/koishi-plugin-gpt-character.git"
+  },
   "license": "MIT",
   "scripts": {},
   "keywords": [
     "chatbot",
     "koishi",
-    "plugin"
+    "plugin",
+    "ai",
+    "gpt"
   ],
   "peerDependencies": {
     "koishi": "^4.13.0"
