@@ -5,7 +5,7 @@ export const name = 'gpt-character';
 
 export interface Config {
   openai_api_key: string;
-  character_name?: string;
+  character_name: string;
   character_desc?: string;
   session_example?: string;
   proxy_server?: string;
@@ -23,7 +23,7 @@ export interface Config {
 
 export const Config: Schema<Config> = Schema.object({
   openai_api_key: Schema.string().required().description('OpenAPI API 密钥'),
-  character_name: Schema.string().description('角色名称'),
+  character_name: Schema.string().required().description('角色名称'),
   character_desc: Schema.string().description('角色描述'),
   session_example: Schema.string().description('对话示例（需要携带角色名作为前缀）'),
   proxy_server: Schema.string().description('代理服务器地址（不填则不使用）'),
