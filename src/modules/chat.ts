@@ -31,7 +31,7 @@ const BASIC_PROMPT = `
 const generateSystemPrompt = ({ character_name, character_desc, session_example }: Config) => {
   let prompt = BASIC_PROMPT.replace(
     '{date}',
-    dayjs().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
+    dayjs(Date.now()).tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
   ).replace('{character_name}', character_name);
   if (character_desc) {
     prompt += `\n以下是你的角色设定：\n${character_desc}`;
