@@ -1,13 +1,13 @@
 import { Stream } from 'stream';
 import { Context, Logger, Session } from 'koishi';
-import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
+import moment from 'moment';
 
 import { Config } from '..';
 import { useOpenAI } from './openai';
 import { ChatCompletionRequestMessage } from 'openai';
 
-dayjs.extend(timezone);
+moment.locale('zh-cn');
+process.env.TZ = 'Asia/Shanghai';
 
 const logger = new Logger('gpt-character');
 
@@ -30,10 +30,10 @@ const BASIC_PROMPT = `
 `.trim();
 
 const generateSystemPrompt = ({ character_name, character_desc, session_example }: Config) => {
-  let prompt = BASIC_PROMPT.replace(
-    '{date}',
-    dayjs(Date.now()).tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'),
-  ).replace('{character_name}', character_name);
+  let prompt = BASIC_PROMPT.replace('{date}', moment().format('YYYY-MM-DD HH:mm:ss')).replace(
+    '{character_name}',
+    character_name,
+  );
   if (character_desc) {
     prompt += `\n以下是你的角色设定：\n${character_desc}`;
   }
