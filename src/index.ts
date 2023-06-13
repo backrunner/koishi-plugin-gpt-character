@@ -19,6 +19,8 @@ export interface Config {
   presence_penalty?: number;
   frequency_penalty?: number;
   completion_timeout?: number;
+  long_message_protection?: boolean;
+  long_message_token_limit?: number;
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -41,7 +43,9 @@ export const Config: Schema<Config> = Schema.object({
   temperature: Schema.number().default(0.6),
   presence_penalty: Schema.number().default(0.4),
   frequency_penalty: Schema.number().default(0.25),
-  completion_timeout: Schema.number().default(5000),
+  completion_timeout: Schema.number().default(5000).description('对话补全请求的超时时间（毫秒）'),
+  long_message_protection: Schema.boolean().default(true).description('超长Prompt注入保护'),
+  long_message_token_limit: Schema.number().default(512).description('超长Prompt最大Token数量'),
   enable_debug: Schema.boolean().default(false).description('启用调试模式（更多日志）'),
 });
 
