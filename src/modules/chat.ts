@@ -190,7 +190,6 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       ? historyMessages.slice(-config.max_history_count)
       : historyMessages
   )
-    .reverse()
     .map((message) => {
       const tokenCost = countTokens(message);
       const remain = remainToken - tokenCost;
@@ -208,8 +207,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
         content: message,
       };
     })
-    .filter((item) => !!item)
-    .reverse() as ChatCompletionRequestMessage[];
+    .filter((item) => !!item) as ChatCompletionRequestMessage[];
 
   const currentSession: ChatCompletionRequestMessage[] = [
     {
