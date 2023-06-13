@@ -60,7 +60,6 @@ function removeDuplicates(str, substr) {
 let historyMessages: string[] = [];
 let lastCompletionTime: number;
 let lastMessageFrom: string;
-let isCompleting = false;
 
 export const handleMessage = async (ctx: Context, config: Config, session: Session) => {
   if (!session.content.trim()) {
@@ -92,12 +91,6 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
         handleMessage(ctx, config, session);
       }, currentThrottleTime);
     }
-    return;
-  }
-
-  if (isCompleting) {
-    config.enable_debug &&
-      logger.info('Skip message because the completion is in progress.', session.content);
     return;
   }
 
@@ -211,7 +204,6 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   const proxyUrl = config.proxy_server ? new URL(config.proxy_server) : null;
 
   lastCompletionTime = Date.now();
-  isCompleting = true;
 
   config.enable_debug && logger.info('Starting completion:', JSON.stringify(currentSession));
   config.enable_debug && logger.info('Original message:', session.content);
@@ -279,15 +271,10 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       });
     });
     stream.on('error', (error) => {
-      isCompleting = false;
       logger.error('Error ocurred when streaming:', error);
-    });
-    stream.on('end', () => {
-      isCompleting = false;
     });
   } catch (error) {
     logger.error('Error ocurred when completing:', error);
-    isCompleting = false;
   }
 
   if (historyMessages.length > config.max_history_count) {
