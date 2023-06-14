@@ -21,6 +21,8 @@ export interface Config {
   completion_timeout?: number;
   long_message_protection?: boolean;
   long_message_token_limit?: number;
+  basic_prompt_version?: number;
+  enable_extra_jail_prompt?: boolean;
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -46,7 +48,11 @@ export const Config: Schema<Config> = Schema.object({
   completion_timeout: Schema.number().default(5000).description('对话补全请求的超时时间（毫秒）'),
   long_message_protection: Schema.boolean().default(true).description('超长Prompt注入保护'),
   long_message_token_limit: Schema.number().default(512).description('超长Prompt最大Token数量'),
-  enable_debug: Schema.boolean().default(false).description('启用调试模式（更多日志）'),
+  enable_extra_jail_prompt: Schema.boolean()
+    .default(false)
+    .description('是否启用额外的强化Prompt（仅在有必要的时候使用，可以避免Prompt注入）'),
+  basic_prompt_version: Schema.number().default(2).description('开发：切换基础Prompt版本'),
+  enable_debug: Schema.boolean().default(false).description('开发：启用调试模式（更多日志）'),
 });
 
 export function apply(ctx: Context, config: Config) {
