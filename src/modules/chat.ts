@@ -134,7 +134,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       skipCompletion = true;
     } else {
       session.content = removeLeadingDuplicateSubstrings(session.content);
-      session.content.replace(atMePattern, `@${config.character_name}`);
+      session.content = session.content.replace(atMePattern, `@${config.character_name}`);
     }
   }
 
