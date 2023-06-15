@@ -316,7 +316,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
         } catch (error) {
           logger.error('Cannot parse OpenAI response.', error);
         }
-        const deltaContent = parsed?.choices?.[0]?.delta?.content;
+        const deltaContent = parsed?.choices?.[0]?.delta?.content as string | undefined;
         if (!deltaContent) {
           return;
         }
@@ -328,8 +328,8 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
           logger.info('Completion has been skipped.');
           return;
         }
-        if (['。'].includes(deltaContent)) {
-          send(postProcessResponse(responseText));
+        if (deltaContent.endsWith('。')) {
+          send(postProcessResponse(responseText.slice(0, -1)));
           responseText = '';
         }
       });
