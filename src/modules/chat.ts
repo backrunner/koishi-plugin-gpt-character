@@ -341,7 +341,8 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     logger.error('Error ocurred when completing:', error);
   }
 
-  if (historyMessages.length > config.max_history_count) {
-    setHistory(currentSessionId, historyMessages.slice(-config.max_history_count));
+  const currentHistory = useHistory(currentSessionId);
+  if (currentHistory.length > config.max_history_count) {
+    setHistory(currentSessionId, currentHistory.slice(-config.max_history_count));
   }
 };
