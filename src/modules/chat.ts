@@ -79,14 +79,13 @@ function random(min: number, max: number) {
   return Math.floor(Math.random() * range) + min;
 }
 
-function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()/[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
-
-function removeDuplicates(str, substr) {
-  let escapedSubstr = escapeRegExp(substr);
-  let re = new RegExp(`^(${escapedSubstr}\\s*)+`, 'g');
-  return str.replace(re, '');
+function removeLeadingDuplicateSubstrings(str) {
+  while (true) {
+    let oldStr = str;
+    str = str.replace(/(\b.+?\b)(\s*\1)+/g, '$1');
+    if (str === oldStr) break;
+  }
+  return str;
 }
 
 let historyMessages: string[] = [];
@@ -145,7 +144,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
         const user = await session.getUser(session.content.slice(8, slashIdx));
         if (user?.name) {
           const atUserPattern = `<at id="${session.userId}"/>`;
-          session.content = removeDuplicates(session.content, atUserPattern);
+          session.content = removeLeadingDuplicateSubstrings(session.content);
           session.content = session.content.replace(atUserPattern, user.name).trim();
         }
       } catch (err) {
@@ -153,7 +152,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       }
       return;
     }
-    session.content = removeDuplicates(session.content, atMePattern);
+    session.content = removeLeadingDuplicateSubstrings(session.content);
     session.content.replace(atMePattern, `@${config.character_name}`);
   }
 
