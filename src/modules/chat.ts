@@ -6,6 +6,7 @@ import { Config } from '..';
 import { useOpenAI } from './openai';
 import { ChatCompletionRequestMessage } from 'openai';
 import { countTokens } from './utils';
+import { setHistory, useHistory } from './context';
 
 moment.locale('zh-cn');
 process.env.TZ = 'Asia/Shanghai';
@@ -88,7 +89,6 @@ function removeLeadingDuplicateSubstrings(str) {
   return str;
 }
 
-let historyMessages: string[] = [];
 let lastCompletionTime: number;
 let lastMessageFrom: string;
 
@@ -112,6 +112,9 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       return;
     }
   }
+
+  const currentSessionId = session.guildId || session.userId;
+  const historyMessages = useHistory(currentSessionId);
 
   // preprocess
   historyMessages.push(currentMessage);
@@ -337,6 +340,6 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   }
 
   if (historyMessages.length > config.max_history_count) {
-    historyMessages = historyMessages.slice(-config.max_history_count);
+    setHistory(currentSessionId, historyMessages.slice(-config.max_history_count));
   }
 };
