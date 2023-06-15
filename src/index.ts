@@ -21,6 +21,8 @@ export interface Config {
   completion_timeout?: number;
   long_message_protection?: boolean;
   long_message_token_limit?: number;
+  enable_prompt_safety_check?: boolean;
+  min_shield_check_token?: number;
   basic_prompt_version?: string;
   enable_extra_jail_prompt?: boolean;
 }
@@ -48,6 +50,12 @@ export const Config: Schema<Config> = Schema.object({
   completion_timeout: Schema.number().default(5000).description('对话补全请求的超时时间（毫秒）'),
   long_message_protection: Schema.boolean().default(true).description('超长Prompt注入保护'),
   long_message_token_limit: Schema.number().default(512).description('超长Prompt最大Token数量'),
+  enable_prompt_safety_check: Schema.boolean()
+    .default(true)
+    .description('是否启用过长Prompt安全检查'),
+  min_shield_check_token: Schema.number()
+    .default(100)
+    .description('最小触发Prompt安全检查的Token数量'),
   enable_extra_jail_prompt: Schema.boolean()
     .default(false)
     .description('是否启用额外的强化Prompt（仅在有必要的时候使用，可以避免Prompt注入）'),

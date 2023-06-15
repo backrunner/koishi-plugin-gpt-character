@@ -4,7 +4,7 @@ import moment from 'moment';
 import { ChatCompletionRequestMessage } from 'openai';
 
 import { Config } from '..';
-import { BASIC_PROMPT, START_PROMPT } from './prompt';
+import { BASIC_PROMPT, START_PROMPT, SEC_CHECK_PROMPT } from './prompt';
 import { useOpenAI } from './openai';
 import { countTokens } from './utils';
 import { setHistory, useHistory } from './context';
@@ -43,26 +43,24 @@ function random(min: number, max: number) {
   return Math.floor(Math.random() * range) + min;
 }
 
-function removeDuplicatedAt(str) {
-  const regex = /<at id="\d+"\/>/g;
-  const matches = str.match(regex);
+function removeDuplicateAtTags(input) {
+  const regex = /<at id="(\d+)"\/>/g;
+  const ids = new Set();
+  let match;
+  let output = input;
 
-  if (!matches) {
-    return str;
-  }
+  while ((match = regex.exec(input)) !== null) {
+    const fullMatch = match[0];
+    const id = match[1];
 
-  const uniqueMatches = [];
-  const seenIds = new Set();
-  for (const match of matches) {
-    const id = match.match(/\d+/)[0];
-    if (!seenIds.has(id)) {
-      seenIds.add(id);
-      uniqueMatches.push(match);
+    if (ids.has(id)) {
+      output = output.replace(fullMatch, '');
+    } else {
+      ids.add(id);
     }
   }
 
-  const replaced = str.replace(regex, () => uniqueMatches.shift());
-  return replaced;
+  return output.trim();
 }
 
 function replaceFaceTags(str: string) {
@@ -149,7 +147,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
           const user = await session.getUser(extractIdFromAt(session.content));
           if (user?.name) {
             const atUserPattern = `<at id="${user.id}"/>`;
-            session.content = removeDuplicatedAt(session.content);
+            session.content = removeDuplicateAtTags(session.content);
             session.content = session.content.replace(atUserPattern, user.name).trim();
           }
           runTime += 1;
@@ -159,7 +157,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       }
       skipCompletion = true;
     } else {
-      session.content = removeDuplicatedAt(session.content);
+      session.content = removeDuplicateAtTags(session.content);
       session.content = session.content.replace(atMePattern, `@${config.character_name}`);
     }
   }
@@ -182,6 +180,51 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
   const openai = useOpenAI({ apiKey: config.openai_api_key });
   const systemPrompt = generateSystemPrompt(config);
+
+  // security
+
+  const isPropmtSafe = async (content: string): Promise<boolean> => {
+    try {
+      const response = await openai.createChatCompletion(
+        {
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'user',
+              content: SEC_CHECK_PROMPT.replace('{check_content}', content),
+            },
+          ],
+        },
+        {
+          timeout: config.completion_timeout,
+          ...(proxyUrl
+            ? {
+                proxy: {
+                  protocol: proxyUrl.protocol,
+                  host: proxyUrl.hostname,
+                  port: Number(proxyUrl.port),
+                },
+              }
+            : null),
+        },
+      );
+      const choice = response.data.choices?.[0]?.message?.content;
+      if (!choice) {
+        return true;
+      }
+      return choice !== 'true';
+    } catch (error) {
+      logger.error('Failed to check prompt safety.', error);
+      return false;
+    }
+  };
+
+  if (config.enable_prompt_safety_check && currentMessageToken > config.min_shield_check_token) {
+    const checkRes = isPropmtSafe(session.content);
+    if (!checkRes) {
+      return;
+    }
+  }
 
   const trimStrangeChars = (str: string) => {
     if (str.includes('::')) {
