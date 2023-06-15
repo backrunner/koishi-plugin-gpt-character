@@ -43,7 +43,7 @@ function random(min: number, max: number) {
   return Math.floor(Math.random() * range) + min;
 }
 
-function removeLeadingDuplicateSubstrings(str) {
+function removeLeadingDuplicateSubstrings(str: string) {
   while (true) {
     let oldStr = str;
     str = str.replace(/(\b.+?\b)(\s*\1)+/g, '$1');
@@ -52,9 +52,15 @@ function removeLeadingDuplicateSubstrings(str) {
   return str;
 }
 
-function replaceFaceTags(str) {
+function replaceFaceTags(str: string) {
   const regex = /<face id="\d+" name="([^"]+)" platform="[^"]+"><image url="[^"]+"\/><\/face>/g;
   return str.replace(regex, (match, p1) => `[表情:${p1}]`);
+}
+
+function extractIdFromAt(str: string) {
+  const regex = /<at id="(\d+)"\/>/;
+  const match = str.match(regex);
+  return match ? match[1] : null;
 }
 
 const throttleTimers: Record<string, ReturnType<typeof setTimeout>> = {};
@@ -121,12 +127,19 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     if (!isAtMe) {
       // do not respond with message with is not at me
       try {
-        const slashIdx = session.content.indexOf('/');
-        const user = await session.getUser(session.content.slice(8, slashIdx));
-        if (user?.name) {
-          const atUserPattern = `<at id="${session.userId}"/>`;
-          session.content = removeLeadingDuplicateSubstrings(session.content);
-          session.content = session.content.replace(atUserPattern, user.name).trim();
+        const maxRunTime = 100;
+        let runTime = 0;
+        while (session.content.includes('<at id=')) {
+          if (runTime > maxRunTime) {
+            break;
+          }
+          const user = await session.getUser(extractIdFromAt(session.content));
+          if (user?.name) {
+            const atUserPattern = `<at id="${user.id}"/>`;
+            session.content = removeLeadingDuplicateSubstrings(session.content);
+            session.content = session.content.replace(atUserPattern, user.name).trim();
+          }
+          runTime += 1;
         }
       } catch (err) {
         logger.error('Failed to get user info in session.', err);
