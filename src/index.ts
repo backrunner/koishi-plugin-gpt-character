@@ -21,7 +21,7 @@ export interface Config {
   completion_timeout?: number;
   long_message_protection?: boolean;
   long_message_token_limit?: number;
-  basic_prompt_version?: number;
+  basic_prompt_version?: string;
   enable_extra_jail_prompt?: boolean;
 }
 
@@ -51,7 +51,7 @@ export const Config: Schema<Config> = Schema.object({
   enable_extra_jail_prompt: Schema.boolean()
     .default(false)
     .description('是否启用额外的强化Prompt（仅在有必要的时候使用，可以避免Prompt注入）'),
-  basic_prompt_version: Schema.number().default(2).description('开发：切换基础Prompt版本'),
+  basic_prompt_version: Schema.string().default('2').description('开发：切换基础Prompt版本'),
   enable_debug: Schema.boolean().default(false).description('开发：启用调试模式（更多日志）'),
 });
 
