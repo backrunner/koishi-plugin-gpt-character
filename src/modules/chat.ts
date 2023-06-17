@@ -4,7 +4,7 @@ import moment from 'moment';
 import { ChatCompletionRequestMessage } from 'openai';
 
 import { Config } from '..';
-import { BASIC_PROMPT, START_PROMPT, SEC_CHECK_PROMPT } from './prompt';
+import { BASIC_PROMPT, START_PROMPT, SKIP_PROMPT, SEC_CHECK_PROMPT } from './prompt';
 import { useOpenAI } from './openai';
 import { countTokens } from './utils';
 import { setHistory, useHistory } from './context';
@@ -23,18 +23,32 @@ const generateSystemPrompt = ({
   character_desc,
   session_example,
   basic_prompt_version,
+  enable_skip,
 }: Config) => {
-  let prompt = BASIC_PROMPT[`v${basic_prompt_version}`]
+  const promptVersion = `v${basic_prompt_version}`;
+
+  let prompt = BASIC_PROMPT[promptVersion]
     .replace('{date}', moment().format('YYYY-MM-DD HH:mm:ss'))
     .replace('{character_name}', character_name);
-  if (character_desc) {
-    prompt += `\n以下是你的角色设定：\n${character_desc}`;
+
+  const characterDesc = character_desc.trim();
+  if (characterDesc) {
+    prompt += `\n以下是你的角色设定：\n${characterDesc}`;
   }
-  if (session_example) {
-    prompt += `\n以下是对话示例：\n${session_example}`;
+
+  const sessionExample = session_example.trim();
+  if (sessionExample) {
+    prompt += `\n以下是对话示例：\n${sessionExample}`;
   }
-  prompt += START_PROMPT[`v${basic_prompt_version}`].replace('{character_name}', character_name);
+
+  if (enable_skip && SKIP_PROMPT[promptVersion]) {
+    prompt += `\n${SKIP_PROMPT[promptVersion]}`;
+  }
+
+  prompt += START_PROMPT[promptVersion].replace('{character_name}', character_name);
+
   sessionRemainToken = MAX_TOKEN - countTokens(prompt);
+
   return prompt;
 };
 
@@ -179,7 +193,14 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   }
 
   const openai = useOpenAI({ apiKey: config.openai_api_key });
-  const systemPrompt = generateSystemPrompt(config);
+  const systemPrompt = generateSystemPrompt({
+    ...config,
+    ...(config.cannot_skip_at_me && isAtMe
+      ? {
+          enable_skip: false,
+        }
+      : null),
+  });
 
   // security
 
@@ -382,12 +403,17 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
         responseText += deltaContent;
 
-        if (/^((.+)::)?\s*\[?skip\]?/.test(responseText)) {
+        if (/((.+)::)?\s*\[?skip\]?/.test(responseText)) {
           skipped = true;
           logger.info('Completion has been skipped.');
           return;
         }
-        if (deltaContent.endsWith('。')) {
+
+        const canSplit = ['“', '【', '（', '(', '['].reduce((res, mark) => {
+          return res && responseText.includes(mark);
+        }, true);
+
+        if (deltaContent.endsWith('。') && canSplit) {
           send(postProcessResponse(responseText.slice(0, -1)));
           responseText = '';
         }

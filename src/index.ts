@@ -25,6 +25,8 @@ export interface Config {
   min_shield_check_token?: number;
   basic_prompt_version?: string;
   enable_extra_jail_prompt?: boolean;
+  enable_skip?: boolean;
+  cannot_skip_at_me?: boolean;
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -61,6 +63,8 @@ export const Config: Schema<Config> = Schema.object({
     .description('是否启用额外的强化Prompt（仅在有必要的时候使用，可以避免Prompt注入）'),
   basic_prompt_version: Schema.string().default('2').description('开发：切换基础Prompt版本'),
   enable_debug: Schema.boolean().default(false).description('开发：启用调试模式（更多日志）'),
+  enable_skip: Schema.boolean().default(false).description('是否允许跳过对话'),
+  cannot_skip_at_me: Schema.boolean().default(true).description('是否允许跳过at角色的对话'),
 });
 
 export function apply(ctx: Context, config: Config) {
