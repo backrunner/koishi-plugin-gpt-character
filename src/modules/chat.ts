@@ -124,10 +124,13 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     session.content = replaceFaceTags(session.content);
   }
 
+  const trimmedContent = session.content.trim();
+
+  const atPattern = /(^<at\sid="\d+"\/>)|(<at\sid="\d+"\/>$)/;
   const atMePattern = `<at id="${session.selfId}"/>`;
 
-  const isAt = session.content.trim().startsWith('<at id=');
-  const isAtMe = session.content.trim().startsWith(atMePattern);
+  const isAt = atPattern.test(trimmedContent);
+  const isAtMe = trimmedContent.startsWith(atMePattern) || trimmedContent.endsWith(atMePattern);
 
   const currentThrottleTime =
     config.completion_throttle + random(config.min_random_throttle, config.max_random_throttle);
