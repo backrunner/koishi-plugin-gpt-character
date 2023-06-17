@@ -382,7 +382,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
         responseText += deltaContent;
 
-        if (/^\s*\[?skip\]?/.test(responseText)) {
+        if (/^((.+)::)?\s*\[?skip\]?/.test(responseText)) {
           skipped = true;
           logger.info('Completion has been skipped.');
           return;
