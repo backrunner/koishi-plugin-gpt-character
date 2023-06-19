@@ -44,7 +44,7 @@ export const BASIC_PROMPT = {
 
 export const START_PROMPT = {
   v2: `\n现在你正式开始扮演{character_name}，在群聊中和成员们对话。`,
-  'v1.1': `\n接下来你将扮演这位角色在群聊内和他成员聊天，你需要基于最后的对话内容和其他人说话。`,
+  'v1.1': `\n下面是群聊最新的历史消息，你曾经回复过的内容为“{character_name}::回复内容”。\n现在你需要根据这些历史消息，作为“{character_name}”加入群聊，和其他人聊天。`,
   v1: `\n接下来你将扮演这位角色加入群聊。`,
 };
 

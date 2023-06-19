@@ -45,7 +45,7 @@ const generateSystemPrompt = ({
     prompt += `\n${SKIP_PROMPT[promptVersion]}`;
   }
 
-  prompt += START_PROMPT[promptVersion].replace('{character_name}', character_name);
+  prompt += START_PROMPT[promptVersion].replaceAll('{character_name}', character_name);
 
   sessionRemainToken = MAX_TOKEN - countTokens(prompt);
 
@@ -75,6 +75,13 @@ function removeDuplicateAtTags(input) {
   }
 
   return output.trim();
+}
+
+function appendPeriodIfEndsWithChinese(str) {
+  if (/[\u4E00-\u9FA5]$/.test(str)) {
+    return str + '。';
+  }
+  return str;
 }
 
 function replaceFaceTags(str: string) {
@@ -181,7 +188,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
   const currentSessionId = session.guildId || session.userId;
   const historyMessages = useHistory(currentSessionId);
-  historyMessages.push(currentMessage);
+  historyMessages.push(appendPeriodIfEndsWithChinese(currentMessage));
 
   if (skipCompletion) {
     return;
@@ -292,7 +299,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   };
 
   const send = (text: string) => {
-    historyMessages.push(`${config.character_name}::${text}`);
+    historyMessages.push(`${config.character_name}::${text}。`);
     config.enable_debug && logger.info('Reply with:', text);
     if (isAtMe && session.userId !== lastMessageFrom) {
       session.send(`<at id="${session.userId}"/> ${text}`);
