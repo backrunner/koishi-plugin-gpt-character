@@ -45,8 +45,6 @@ const generateSystemPrompt = ({
     prompt += `\n${SKIP_PROMPT[promptVersion]}`;
   }
 
-  prompt += START_PROMPT[promptVersion].replaceAll('{character_name}', character_name);
-
   sessionRemainToken = MAX_TOKEN - countTokens(prompt);
 
   return prompt;
@@ -328,7 +326,9 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   const currentSession: ChatCompletionRequestMessage[] = [
     {
       role: 'system',
-      content: `${systemPrompt}\n\n${slicedMessages.join('\n')}`,
+      content: `${systemPrompt}\n\n${slicedMessages.join('\n')}\n${START_PROMPT[
+        config.basic_prompt_version
+      ].replaceAll('{character_name}', config.character_name)}`,
     },
     ...(config.enable_extra_jail_prompt
       ? ([
