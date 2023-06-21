@@ -327,7 +327,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     {
       role: 'system',
       content: `${systemPrompt}\n\n${slicedMessages.join('\n')}\n${START_PROMPT[
-        config.basic_prompt_version
+        `v${config.basic_prompt_version}`
       ].replaceAll('{character_name}', config.character_name)}`,
     },
     ...(config.enable_extra_jail_prompt
