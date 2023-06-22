@@ -278,18 +278,17 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       for (let i = 0; i < prefixes.length; i++) {
         const prefix = prefixes[i];
         if (response.startsWith(prefix)) {
-          return response.slice(prefix.length).trim();
+          response = response.slice(prefix.length).trim();
         }
       }
-      return trimStrangeChars(response);
     }
 
-    const split = ['：：', '::', '：', ':'];
+    const split = ['：：', '::'];
     for (let i = 0; i < split.length; i++) {
       const splitChar = split[i];
       const idx = response.indexOf(splitChar);
       if (idx >= 0) {
-        return trimStrangeChars(response.slice(idx + splitChar.length));
+        response = response.slice(idx + splitChar.length);
       }
     }
 
