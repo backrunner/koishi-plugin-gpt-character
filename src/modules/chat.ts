@@ -45,6 +45,8 @@ const generateSystemPrompt = ({
     prompt += `\n${SKIP_PROMPT[promptVersion]}`;
   }
 
+  prompt += START_PROMPT[promptVersion].replaceAll('{character_name}', character_name);
+
   sessionRemainToken = MAX_TOKEN - countTokens(prompt);
 
   return prompt;
@@ -75,7 +77,7 @@ function removeDuplicateAtTags(input) {
   return output.trim();
 }
 
-function appendPeriodIfEndsWithChinese(str) {
+function appendPeriodIfEndsWithChinese(str: string) {
   if (/[\u4E00-\u9FA5]$/.test(str)) {
     return str + '。';
   }
@@ -186,7 +188,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
 
   const currentSessionId = session.guildId || session.userId;
   const historyMessages = useHistory(currentSessionId);
-  historyMessages.push(appendPeriodIfEndsWithChinese(currentMessage));
+  historyMessages.push(appendPeriodIfEndsWithChinese(currentMessage).replace(/\n/g, ' '));
 
   if (skipCompletion) {
     return;
@@ -296,7 +298,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   };
 
   const send = (text: string) => {
-    historyMessages.push(`${config.character_name}::${text}。`);
+    historyMessages.push(`${config.character_name}::${text}。`.replace(/\n/g, ' '));
     config.enable_debug && logger.info('Reply with:', text);
     if (isAtMe && session.userId !== lastMessageFrom) {
       session.send(`<at id="${session.userId}"/> ${text}`);
@@ -325,9 +327,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   const currentSession: ChatCompletionRequestMessage[] = [
     {
       role: 'system',
-      content: `${systemPrompt}\n\n${slicedMessages.join('\n')}\n${START_PROMPT[
-        `v${config.basic_prompt_version}`
-      ].replaceAll('{character_name}', config.character_name)}`,
+      content: `${systemPrompt}\n\n${slicedMessages.join('\n')}`,
     },
     ...(config.enable_extra_jail_prompt
       ? ([
