@@ -8,6 +8,7 @@ import { BASIC_PROMPT, START_PROMPT, SKIP_PROMPT, SEC_CHECK_PROMPT } from './pro
 import { useOpenAI } from './openai';
 import { countTokens } from './utils';
 import { setHistory, useHistory } from './context';
+import { getRandomNumber } from './random';
 
 moment.locale('zh-cn');
 process.env.TZ = 'Asia/Shanghai';
@@ -195,8 +196,8 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
   }
 
   if (config.random_drop && !isAtMe) {
-    const random = Math.random();
-    if (random > 1 - config.random_drop) {
+    const random = getRandomNumber();
+    if (random / 100 > 1 - config.random_drop) {
       config.enable_debug && logger.info('Ignore current message by random drop:', session.content);
       return;
     }
