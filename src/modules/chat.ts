@@ -257,6 +257,13 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     }
   }
 
+  const removeTrailingPeriods = (sentence: string) => {
+    if (sentence.replace(/。/g, '').trim() === '') {
+      return sentence;
+    }
+    return sentence.replace(/[.。]+$/g, '');
+  };
+
   const trimStrangeChars = (str: string) => {
     if (str.includes('::')) {
       return postProcessResponse(str);
@@ -294,7 +301,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
       }
     }
 
-    return trimStrangeChars(response);
+    return removeTrailingPeriods(trimStrangeChars(response));
   };
 
   const send = (text: string) => {
