@@ -7,6 +7,7 @@ export interface Config {
   openai_api_key: string;
   character_name: string;
   character_desc?: string;
+  members_desc?: string;
   session_example?: string;
   proxy_server?: string;
   completion_throttle?: number;
@@ -33,6 +34,7 @@ export const Config: Schema<Config> = Schema.object({
   openai_api_key: Schema.string().required().description('OpenAPI API 密钥'),
   character_name: Schema.string().required().description('角色名称'),
   character_desc: Schema.string().description('角色描述'),
+  members_desc: Schema.string().description('群员描述'),
   session_example: Schema.string().description('对话示例（需要携带角色名作为前缀）'),
   proxy_server: Schema.string().description('代理服务器地址（不填则不使用）'),
   completion_throttle: Schema.number()
@@ -61,7 +63,7 @@ export const Config: Schema<Config> = Schema.object({
   enable_extra_jail_prompt: Schema.boolean()
     .default(false)
     .description('是否启用额外的强化Prompt（仅在有必要的时候使用，可以避免Prompt注入）'),
-  basic_prompt_version: Schema.string().default('2').description('开发：切换基础Prompt版本'),
+  basic_prompt_version: Schema.string().default('1.2').description('开发：切换基础Prompt版本'),
   enable_debug: Schema.boolean().default(false).description('开发：启用调试模式（更多日志）'),
   enable_skip: Schema.boolean().default(false).description('是否允许跳过对话'),
   cannot_skip_at_me: Schema.boolean().default(true).description('是否允许跳过at角色的对话'),

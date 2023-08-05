@@ -25,6 +25,7 @@ const generateSystemPrompt = ({
   session_example,
   basic_prompt_version,
   enable_skip,
+  members_desc,
 }: Config) => {
   const promptVersion = `v${basic_prompt_version}`;
 
@@ -44,6 +45,10 @@ const generateSystemPrompt = ({
 
   if (enable_skip && SKIP_PROMPT[promptVersion]) {
     prompt += `\n${SKIP_PROMPT[promptVersion]}`;
+  }
+
+  if (members_desc) {
+    prompt += `\n以下是群内的其他成员：\n${members_desc}`;
   }
 
   prompt += START_PROMPT[promptVersion].replaceAll('{character_name}', character_name);
