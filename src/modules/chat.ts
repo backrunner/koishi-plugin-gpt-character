@@ -30,8 +30,7 @@ const generateSystemPrompt = ({
   const promptVersion = `v${basic_prompt_version}`;
 
   let prompt = BASIC_PROMPT[promptVersion]
-    .replace('{date}', moment().format('YYYY-MM-DD HH:mm:ss'))
-    .replace('{character_name}', character_name);
+    .replace('{date}', moment().format('YYYY-MM-DD HH:mm:ss'));
 
   const characterDesc = character_desc.trim();
   if (characterDesc) {
@@ -51,11 +50,11 @@ const generateSystemPrompt = ({
     prompt += `\n以下是群内的其他成员：\n${members_desc}`;
   }
 
-  prompt += START_PROMPT[promptVersion].replaceAll('{character_name}', character_name);
+  prompt += START_PROMPT[promptVersion];
 
   sessionRemainToken = MAX_TOKEN - countTokens(prompt);
 
-  return prompt;
+  return prompt.replaceAll('{character_name}', character_name);
 };
 
 function random(min: number, max: number) {
