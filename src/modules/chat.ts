@@ -223,7 +223,7 @@ export const handleMessage = async (ctx: Context, config: Config, session: Sessi
     try {
       const response = await openai.createChatCompletion(
         {
-          model: 'gpt-3.5-turbo',
+          model: config.openai_model,
           messages: [
             {
               role: 'user',

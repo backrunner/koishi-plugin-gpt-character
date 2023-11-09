@@ -5,6 +5,7 @@ export const name = 'gpt-character';
 
 export interface Config {
   openai_api_key: string;
+  openai_model: string;
   character_name: string;
   character_desc?: string;
   members_desc?: string;
@@ -32,6 +33,7 @@ export interface Config {
 
 export const Config: Schema<Config> = Schema.object({
   openai_api_key: Schema.string().required().description('OpenAPI API 密钥'),
+  openai_model: Schema.string().required().default('gpt-3.5-turbo-1106').description('OpenAI 模型'),
   character_name: Schema.string().required().description('角色名称'),
   character_desc: Schema.string().description('角色描述'),
   members_desc: Schema.string().description('群员描述'),
